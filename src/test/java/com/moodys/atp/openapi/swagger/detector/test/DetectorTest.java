@@ -1,4 +1,4 @@
-package com.moodys.openapi.swagger.detector.test;
+package com.moodys.atp.openapi.swagger.detector.test;
 
 import com.deepoove.swagger.diff.SwaggerDiff;
 import com.deepoove.swagger.diff.model.ChangedEndpoint;
