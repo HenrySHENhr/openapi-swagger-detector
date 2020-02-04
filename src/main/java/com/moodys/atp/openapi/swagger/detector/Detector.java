@@ -91,7 +91,7 @@ public class Detector {
             String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
             File folder = new File(folderPath);
             if (!folder.exists()) {
-                boolean success = folder.mkdir();
+                boolean success = folder.mkdirs();
             }
             FileWriter fw = new FileWriter(pathname);
             fw.write(html);
@@ -111,7 +111,7 @@ public class Detector {
             String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
             File folder = new File(folderPath);
             if (!folder.exists()) {
-                boolean success = folder.mkdir();
+                boolean success = folder.mkdirs();
             }
             FileWriter fw = new FileWriter(pathname);
             fw.write(html);
