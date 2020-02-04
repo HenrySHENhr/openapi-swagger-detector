@@ -23,6 +23,9 @@ public class Detector {
     static final String REPORT_FOLDER = "report";
 
     public Detector() {
+        // Delete out of date report
+        deleteFolder(new File(REPORT_FOLDER));
+
         // Get all files
         List<String> benchmarkFiles = FileDetector.searchFiles(BENCHMARK_FOLDER, "json");
         List<String> currentFiles = FileDetector.searchFiles(CURRENT_FOLDER, "json");
@@ -33,6 +36,7 @@ public class Detector {
         System.out.println("current: ");
         currentFiles.forEach(item -> System.out.print(item + " "));
         System.out.println();
+
         // Difference set
         List<String> benchmarkFileNames = new ArrayList<>(benchmarkFiles);
         benchmarkFileNames = benchmarkFileNames.stream().map(item -> item.substring(BENCHMARK_FOLDER.length() + 1))
@@ -54,6 +58,7 @@ public class Detector {
             currentDifferenceSet.forEach(item -> System.out.print(item + " "));
             System.out.println();
         }
+
         // Detect
         for (String benchmark : benchmarkFiles) {
             String current = CURRENT_FOLDER + "\\" + benchmark.substring(BENCHMARK_FOLDER.length() + 1);
@@ -66,13 +71,15 @@ public class Detector {
                 if (obj.containsKey("openapi")) {
                     System.out.println("Detect: " + benchmark + " " + current);
                     ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
-                    this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                    if (diff.isDiff()) {
+                        this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                    }
                 } else {
                     SwaggerDiff diff = SwaggerDiff.compareV2(benchmark, current);
-//                    List<Endpoint> newEndpoints = diff.getNewEndpoints();
-//                    List<Endpoint> missingEndpoints = diff.getMissingEndpoints();
-//                    List<ChangedEndpoint> changedEndPoints = diff.getChangedEndpoints();
-                    this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                    if (diff.getNewEndpoints().size() != 0 || diff.getMissingEndpoints().size() != 0
+                            || diff.getChangedEndpoints().size() != 0) {
+                        this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                    }
                 }
 
             } catch (ParseException | IOException e) {
@@ -81,7 +88,7 @@ public class Detector {
         }
     }
 
-    public void render(ChangedOpenApi diff, String pathname) {
+    private void render(ChangedOpenApi diff, String pathname) {
         String html = new com.qdesrame.openapi.diff.output.HtmlRender("Changelog",
                 "http://deepoove.com/swagger-diff/stylesheets/demo.css")
                 .render(diff);
@@ -101,7 +108,7 @@ public class Detector {
         }
     }
 
-    public void render(SwaggerDiff diff, String pathname) {
+    private void render(SwaggerDiff diff, String pathname) {
         String html = new com.deepoove.swagger.diff.output.HtmlRender("Changelog",
                 "http://deepoove.com/swagger-diff/stylesheets/demo.css")
                 .render(diff);
@@ -118,6 +125,22 @@ public class Detector {
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void deleteFolder(File file) {
+        if (file.exists()) {
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (f.isDirectory()) {
+                        deleteFolder(f);
+                    } else {
+                        boolean success = f.delete();
+                    }
+                }
+            }
+            boolean success = file.delete();
         }
     }
 
