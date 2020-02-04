@@ -1,35 +1,119 @@
 package com.moodys.atp.openapi.swagger.detector;
 
 import com.deepoove.swagger.diff.SwaggerDiff;
-import com.deepoove.swagger.diff.model.ChangedEndpoint;
-import com.deepoove.swagger.diff.model.Endpoint;
-import com.deepoove.swagger.diff.output.HtmlRender;
+import com.moodys.atp.openapi.swagger.detector.util.FileDetector;
+import com.qdesrame.openapi.diff.OpenApiCompare;
+import com.qdesrame.openapi.diff.model.ChangedOpenApi;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Detector {
 
-    static final String SWAGGER_V2_DOC1 = "src/main/resources/petstore_v2_1.json";
-    static final String SWAGGER_V2_DOC2 = "src/main/resources/petstore_v2_2.json";
+    static final String BENCHMARK_FOLDER = "benchmark";
+    static final String CURRENT_FOLDER = "current";
+    static final String REPORT_FOLDER = "report";
 
     public Detector() {
-        SwaggerDiff diff = SwaggerDiff.compareV2(SWAGGER_V2_DOC1, SWAGGER_V2_DOC2);
-        List<Endpoint> newEndpoints = diff.getNewEndpoints();
-        List<Endpoint> missingEndpoints = diff.getMissingEndpoints();
-        List<ChangedEndpoint> changedEndPoints = diff.getChangedEndpoints();
-        this.render(diff);
+        // Get all files
+        List<String> benchmarkFiles = FileDetector.searchFiles(BENCHMARK_FOLDER, "json");
+        List<String> currentFiles = FileDetector.searchFiles(CURRENT_FOLDER, "json");
+
+        System.out.println("benchmark: ");
+        benchmarkFiles.forEach(item -> System.out.print(item + " "));
+        System.out.println();
+        System.out.println("current: ");
+        currentFiles.forEach(item -> System.out.print(item + " "));
+        System.out.println();
+        // Difference set
+        List<String> benchmarkFileNames = new ArrayList<>(benchmarkFiles);
+        benchmarkFileNames = benchmarkFileNames.stream().map(item -> item.substring(BENCHMARK_FOLDER.length() + 1))
+                .collect(Collectors.toList());
+        List<String> currentFileNames = new ArrayList<>(currentFiles);
+        currentFileNames = currentFileNames.stream().map(item -> item.substring(CURRENT_FOLDER.length() + 1))
+                .collect(Collectors.toList());
+        List<String> benchmarkDifferenceSet = new ArrayList<>(benchmarkFileNames);
+        benchmarkDifferenceSet.removeAll(currentFileNames);
+        List<String> currentDifferenceSet = new ArrayList<>(currentFileNames);
+        currentDifferenceSet.removeAll(benchmarkFileNames);
+        if (!benchmarkDifferenceSet.isEmpty()) {
+            System.out.println("benchmark difference set: ");
+            benchmarkDifferenceSet.forEach(item -> System.out.print(item + " "));
+            System.out.println();
+        }
+        if (!currentDifferenceSet.isEmpty()) {
+            System.out.println("benchmark difference set: ");
+            currentDifferenceSet.forEach(item -> System.out.print(item + " "));
+            System.out.println();
+        }
+        // Detect
+        for (String benchmark : benchmarkFiles) {
+            String current = CURRENT_FOLDER + "\\" + benchmark.substring(BENCHMARK_FOLDER.length() + 1);
+
+            try {
+                FileReader reader = new FileReader(benchmark);
+                JSONParser parser = new JSONParser();
+                JSONObject obj = (JSONObject) parser.parse(reader);
+                // Detect swagger version
+                if (obj.containsKey("openapi")) {
+                    System.out.println("Detect: " + benchmark + " " + current);
+                    ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
+                    this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                } else {
+                    SwaggerDiff diff = SwaggerDiff.compareV2(benchmark, current);
+//                    List<Endpoint> newEndpoints = diff.getNewEndpoints();
+//                    List<Endpoint> missingEndpoints = diff.getMissingEndpoints();
+//                    List<ChangedEndpoint> changedEndPoints = diff.getChangedEndpoints();
+                    this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                }
+
+            } catch (ParseException | IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void render(SwaggerDiff diff) {
-        String html = new HtmlRender("Changelog",
+    public void render(ChangedOpenApi diff, String pathname) {
+        String html = new com.qdesrame.openapi.diff.output.HtmlRender("Changelog",
                 "http://deepoove.com/swagger-diff/stylesheets/demo.css")
                 .render(diff);
 
         try {
-            FileWriter fw = new FileWriter(
-                    "testNewApi.html");
+            pathname = REPORT_FOLDER + "\\" + pathname.substring(0, pathname.lastIndexOf(".")) + ".html";
+            String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
+            File folder = new File(folderPath);
+            if (!folder.exists()) {
+                boolean success = folder.mkdir();
+            }
+            FileWriter fw = new FileWriter(pathname);
+            fw.write(html);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void render(SwaggerDiff diff, String pathname) {
+        String html = new com.deepoove.swagger.diff.output.HtmlRender("Changelog",
+                "http://deepoove.com/swagger-diff/stylesheets/demo.css")
+                .render(diff);
+
+        try {
+            pathname = REPORT_FOLDER + "\\" + pathname.substring(0, pathname.lastIndexOf(".")) + ".html";
+            String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
+            File folder = new File(folderPath);
+            if (!folder.exists()) {
+                boolean success = folder.mkdir();
+            }
+            FileWriter fw = new FileWriter(pathname);
             fw.write(html);
             fw.close();
         } catch (IOException e) {
