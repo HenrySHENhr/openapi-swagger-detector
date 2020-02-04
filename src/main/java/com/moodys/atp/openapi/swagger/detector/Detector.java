@@ -68,18 +68,22 @@ public class Detector {
                 JSONParser parser = new JSONParser();
                 JSONObject obj = (JSONObject) parser.parse(reader);
                 // Detect swagger version
-                if (obj.containsKey("openapi")) {
-                    System.out.println("Detect: " + benchmark + " " + current);
-                    ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
-                    if (diff.isDiff()) {
-                        this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                try {
+                    if (obj.containsKey("openapi")) {
+                        System.out.println("Detect: " + benchmark + " " + current);
+                        ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
+                        if (diff.isDiff()) {
+                            this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                        }
+                    } else {
+                        SwaggerDiff diff = SwaggerDiff.compareV2(benchmark, current);
+                        if (diff.getNewEndpoints().size() != 0 || diff.getMissingEndpoints().size() != 0
+                                || diff.getChangedEndpoints().size() != 0) {
+                            this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                        }
                     }
-                } else {
-                    SwaggerDiff diff = SwaggerDiff.compareV2(benchmark, current);
-                    if (diff.getNewEndpoints().size() != 0 || diff.getMissingEndpoints().size() != 0
-                            || diff.getChangedEndpoints().size() != 0) {
-                        this.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
-                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
             } catch (ParseException | IOException e) {
