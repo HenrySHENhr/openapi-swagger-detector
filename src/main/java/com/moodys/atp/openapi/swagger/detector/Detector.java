@@ -68,8 +68,8 @@ public class Detector {
                 JSONObject obj = (JSONObject) parser.parse(reader);
                 // Detect swagger version
                 if (obj.containsKey("openapi")) {
-                    FileDetector.updateAllOfToAnyOf(benchmark);
-                    FileDetector.updateAllOfToAnyOf(current);
+                    FileDetector.updateToAnyOf(benchmark);
+                    FileDetector.updateToAnyOf(current);
                     ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
                     if (diff.isDiff()) {
                         Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
