@@ -19,28 +19,6 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     }
   },
-  "tags": [
-    {
-      "name": "pet",
-      "description": "Everything about your Pets",
-      "externalDocs": {
-        "description": "Find out more",
-        "url": "http://swagger.io"
-      }
-    },
-    {
-      "name": "store",
-      "description": "Access to Petstore orders"
-    },
-    {
-      "name": "user",
-      "description": "Operations about user",
-      "externalDocs": {
-        "description": "Find out more about our store",
-        "url": "http://swagger.io"
-      }
-    }
-  ],
   "paths": {
     "/store/inventory": {
       "get": {
@@ -56,13 +34,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "$ref": "#/components/schemas/Inventory",
-                    "x-key-property": {
-                      "$ref": "#/components/schemas/InvStatus"
-                    }
-                  }
+                  "$ref": "#/components/schemas/Inventory"
                 }
               }
             }
@@ -82,7 +54,8 @@
         "enum": [
           "available",
           "reserved",
-          "sold"
+          "sold",
+          "empty"
         ]
       },
       "Inventory": {
@@ -93,6 +66,16 @@
           },
           "details": {
             "type": "count"
+          },
+          "extra_info": {
+            "type": "array",
+            "items": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Inventory"
+                }
+              ]
+            }
           }
         }
       }

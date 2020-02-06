@@ -1,6 +1,6 @@
 package com.moodys.atp.openapi.swagger.detector.util;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,5 +67,26 @@ public class FileDetector {
         }
 
         return result;
+    }
+
+    /**
+     * Update <code>allOf</code> to <code>oneOf</code> in OpenAPI json file
+     * @param pathname json file path
+     */
+    public static void updateAllOfToOneOf(String pathname) throws IOException {
+        File file = new File(pathname);
+        FileReader fr = new FileReader(file);
+        BufferedReader br = new BufferedReader(fr);
+        CharArrayWriter tempStream = new CharArrayWriter();
+        String line;
+        while ((line = br.readLine()) != null) {
+            line = line.replaceAll("\"allOf\"", "\"oneOf\"");
+            tempStream.write(line);
+            tempStream.append(System.getProperty("line.separator"));
+        }
+        br.close();
+        FileWriter fw = new FileWriter(file);
+        tempStream.writeTo(fw);
+        fw.close();
     }
 }
