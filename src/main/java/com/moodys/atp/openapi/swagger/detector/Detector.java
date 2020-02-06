@@ -7,11 +7,9 @@ import com.qdesrame.openapi.diff.OpenApiCompare;
 import com.qdesrame.openapi.diff.model.ChangedOpenApi;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,6 +61,7 @@ public class Detector {
         for (String benchmark : benchmarkFiles) {
             String current = CURRENT_FOLDER + "\\" + benchmark.substring(BENCHMARK_FOLDER.length() + 1);
 
+            System.out.println(benchmark.replace(BENCHMARK_FOLDER, ""));
             try {
                 FileReader reader = new FileReader(benchmark);
                 JSONParser parser = new JSONParser();
@@ -82,13 +81,11 @@ public class Detector {
                         Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
                     }
                 }
-            } catch (ParseException | IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
-
-
 
     public static void main(String[] args) {
         new Detector();
