@@ -70,17 +70,17 @@ public class FileDetector {
     }
 
     /**
-     * Update <code>allOf</code> to <code>oneOf</code> in OpenAPI json file
+     * Update <code>allOf</code> to <code>anyOf</code> in OpenAPI json file
      * @param pathname json file path
      */
-    public static void updateAllOfToOneOf(String pathname) throws IOException {
+    public static void updateAllOfToAnyOf(String pathname) throws IOException {
         File file = new File(pathname);
         FileReader fr = new FileReader(file);
         BufferedReader br = new BufferedReader(fr);
         CharArrayWriter tempStream = new CharArrayWriter();
         String line;
         while ((line = br.readLine()) != null) {
-            line = line.replaceAll("\"allOf\"", "\"oneOf\"");
+            line = line.replaceAll("\"allOf\"", "\"anyOf\"");
             tempStream.write(line);
             tempStream.append(System.getProperty("line.separator"));
         }

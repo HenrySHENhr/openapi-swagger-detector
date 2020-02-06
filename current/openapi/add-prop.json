@@ -65,7 +65,7 @@
             "type": "string"
           },
           "details": {
-            "type": "count"
+            "type": "string"
           },
           "extra_info": {
             "type": "array",

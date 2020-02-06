@@ -70,7 +70,7 @@
           "extra_info": {
             "type": "array",
             "items": {
-              "oneOf": [
+              "allOf": [
                 {
                   "$ref": "#/components/schemas/Inventory"
                 }
