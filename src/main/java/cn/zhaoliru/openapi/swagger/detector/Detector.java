@@ -106,6 +106,8 @@ public class Detector {
                             //noinspection ResultOfMethodCallIgnored
                             new File(path).delete();
                         });
+                    } else {
+                        throw e;
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
