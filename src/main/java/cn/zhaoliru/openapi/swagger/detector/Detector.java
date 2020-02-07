@@ -84,12 +84,15 @@ public class Detector {
                     }
                 }
             } catch (IllegalArgumentException e) {
+                System.out.println(e.toString());
                 try {
                     List<String> benchmarkList = FileDetector.splitPathsToFiles(benchmark);
                     List<String> currentList = FileDetector.splitPathsToFiles(current);
                     System.out.println("Split json file");
                     if (benchmarkList != null && !benchmarkList.isEmpty()
                             && currentList != null && !currentList.isEmpty()) {
+                        // TODO Calculate path difference set between two folders
+
                         benchmarkList.forEach(path -> {
                             System.out.print(path.substring(BENCHMARK_FOLDER.length()) + " ");
                             ChangedOpenApi diff = OpenApiCompare.fromLocations(path,
