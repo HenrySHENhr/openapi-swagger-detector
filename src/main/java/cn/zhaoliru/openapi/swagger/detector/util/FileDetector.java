@@ -134,6 +134,7 @@ public class FileDetector {
             String destinationPathname = pathname.substring(0, pathname.lastIndexOf("."))
                     + path.getKey().toString().replace("/", "-")
                     + pathname.substring(pathname.lastIndexOf("."));
+            System.out.println(destinationPathname);
             writeFile(destinationPathname, destination.toString());
             result.add(destinationPathname);
         }

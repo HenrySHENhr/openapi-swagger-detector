@@ -94,7 +94,6 @@ public class Detector {
                         // TODO Calculate path difference set between two folders
 
                         benchmarkList.forEach(path -> {
-                            System.out.print(path.substring(BENCHMARK_FOLDER.length()) + " ");
                             ChangedOpenApi diff = OpenApiCompare.fromLocations(path,
                                     CURRENT_FOLDER + "\\" + path.substring(BENCHMARK_FOLDER.length() + 1));
                             if (diff.isDiff()) {
@@ -108,7 +107,6 @@ public class Detector {
                             new File(path).delete();
                         });
                     }
-                    System.out.println();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
