@@ -132,7 +132,7 @@ public class FileDetector {
             destination = new JSONObject(sourceWithoutPath);
             destination.put("paths", pathNode);
             String destinationPathname = pathname.substring(0, pathname.lastIndexOf("."))
-                    + path.getKey().toString().replace("/", "-")
+                    + path.getKey().toString().replace("/", "-").replace("?", "")
                     + pathname.substring(pathname.lastIndexOf("."));
             System.out.println(destinationPathname);
             writeFile(destinationPathname, destination.toString());
