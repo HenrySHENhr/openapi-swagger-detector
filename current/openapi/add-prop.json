@@ -41,6 +41,50 @@
           }
         }
       }
+    },
+    "/store/inventory/{test}": {
+      "get": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Returns pet inventories by status",
+        "description": "Returns a map of status codes to quantities. Available, reserved, sold is must in respone. Other keys can still be there.",
+        "operationId": "getInventory",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inventory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/store/inventory/{exam}": {
+      "get": {
+        "tags": [
+          "store"
+        ],
+        "summary": "Returns pet inventories by status",
+        "description": "Returns a map of status codes to quantities. Available, reserved, sold is must in respone. Other keys can still be there.",
+        "operationId": "getInventory",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inventory"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "externalDocs": {
@@ -65,12 +109,12 @@
             "type": "string"
           },
           "details": {
-            "type": "string"
+            "type": "count"
           },
           "extra_info": {
             "type": "array",
             "items": {
-              "allOf": [
+              "anyOf": [
                 {
                   "$ref": "#/components/schemas/Inventory"
                 }

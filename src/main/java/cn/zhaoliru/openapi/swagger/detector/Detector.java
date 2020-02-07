@@ -1,8 +1,8 @@
-package com.moodys.atp.openapi.swagger.detector;
+package cn.zhaoliru.openapi.swagger.detector;
 
+import cn.zhaoliru.openapi.swagger.detector.util.FileDetector;
+import cn.zhaoliru.openapi.swagger.detector.util.Report;
 import com.deepoove.swagger.diff.SwaggerDiff;
-import com.moodys.atp.openapi.swagger.detector.util.FileDetector;
-import com.moodys.atp.openapi.swagger.detector.util.Report;
 import com.qdesrame.openapi.diff.OpenApiCompare;
 import com.qdesrame.openapi.diff.model.ChangedOpenApi;
 import org.json.simple.JSONObject;
@@ -10,15 +10,15 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 public class Detector {
 
-    static final String BENCHMARK_FOLDER = "benchmark";
-    static final String CURRENT_FOLDER = "current";
-    static final String REPORT_FOLDER = "report";
+    private static final String BENCHMARK_FOLDER = ResourceBundle.getBundle("config").getString("BENCHMARK_FOLDER");
+    private static final String CURRENT_FOLDER = ResourceBundle.getBundle("config").getString("CURRENT_FOLDER");
+    private static final String REPORT_FOLDER = ResourceBundle.getBundle("config").getString("REPORT_FOLDER");
 
     public Detector() {
         // Delete out of date report
@@ -35,25 +35,27 @@ public class Detector {
         currentFiles.forEach(item -> System.out.print(item + " "));
         System.out.println();
 
-        // Difference set
-        List<String> benchmarkFileNames = new ArrayList<>(benchmarkFiles);
-        benchmarkFileNames = benchmarkFileNames.stream().map(item -> item.substring(BENCHMARK_FOLDER.length() + 1))
-                .collect(Collectors.toList());
-        List<String> currentFileNames = new ArrayList<>(currentFiles);
-        currentFileNames = currentFileNames.stream().map(item -> item.substring(CURRENT_FOLDER.length() + 1))
-                .collect(Collectors.toList());
-        List<String> benchmarkDifferenceSet = new ArrayList<>(benchmarkFileNames);
-        benchmarkDifferenceSet.removeAll(currentFileNames);
-        List<String> currentDifferenceSet = new ArrayList<>(currentFileNames);
-        currentDifferenceSet.removeAll(benchmarkFileNames);
-        if (!benchmarkDifferenceSet.isEmpty()) {
-            System.out.println("benchmark difference set: ");
-            benchmarkDifferenceSet.forEach(item -> System.out.print(item + " "));
+        // Calculate file difference set between two folders
+        Map<String, List<String>> differenceSet = FileDetector.folderDetector(benchmarkFiles, currentFiles);
+        if (differenceSet != null && !differenceSet.isEmpty()) {
+            if (differenceSet.containsKey("left")) {
+                System.out.println("benchmark difference set: ");
+                differenceSet.get("left").forEach(item -> System.out.print(item + " "));
+                System.out.println();
+                benchmarkFiles.removeAll(differenceSet.get("left"));
+            }
+            if (differenceSet.containsKey("right")) {
+                System.out.println("current difference set: ");
+                differenceSet.get("right").forEach(item -> System.out.print(item + " "));
+                System.out.println();
+                currentFiles.removeAll(differenceSet.get("right"));
+            }
+
+            System.out.println("benchmark: ");
+            benchmarkFiles.forEach(item -> System.out.print(item + " "));
             System.out.println();
-        }
-        if (!currentDifferenceSet.isEmpty()) {
-            System.out.println("benchmark difference set: ");
-            currentDifferenceSet.forEach(item -> System.out.print(item + " "));
+            System.out.println("current: ");
+            currentFiles.forEach(item -> System.out.print(item + " "));
             System.out.println();
         }
 

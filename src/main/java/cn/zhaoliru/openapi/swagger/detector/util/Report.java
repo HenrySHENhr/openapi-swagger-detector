@@ -1,4 +1,4 @@
-package com.moodys.atp.openapi.swagger.detector.util;
+package cn.zhaoliru.openapi.swagger.detector.util;
 
 import com.deepoove.swagger.diff.SwaggerDiff;
 import com.qdesrame.openapi.diff.model.ChangedOpenApi;
@@ -6,10 +6,11 @@ import com.qdesrame.openapi.diff.model.ChangedOpenApi;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 public class Report {
 
-    private static final String REPORT_FOLDER = "report";
+    private static final String REPORT_FOLDER = ResourceBundle.getBundle("config").getString("REPORT_FOLDER");
 
     public static void render(ChangedOpenApi diff, String pathname) {
         String html = new com.qdesrame.openapi.diff.output.HtmlRender("Changelog",
