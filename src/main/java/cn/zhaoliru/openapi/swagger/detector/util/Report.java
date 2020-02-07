@@ -22,7 +22,8 @@ public class Report {
             String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
             File folder = new File(folderPath);
             if (!folder.exists()) {
-                boolean success = folder.mkdirs();
+                //noinspection ResultOfMethodCallIgnored
+                folder.mkdirs();
             }
             FileWriter fw = new FileWriter(pathname);
             fw.write(html);
@@ -42,7 +43,8 @@ public class Report {
             String folderPath = pathname.substring(0, pathname.lastIndexOf("\\"));
             File folder = new File(folderPath);
             if (!folder.exists()) {
-                boolean success = folder.mkdirs();
+                //noinspection ResultOfMethodCallIgnored
+                folder.mkdirs();
             }
             FileWriter fw = new FileWriter(pathname);
             fw.write(html);
@@ -60,11 +62,13 @@ public class Report {
                     if (f.isDirectory()) {
                         deleteFolder(f);
                     } else {
-                        boolean success = f.delete();
+                        //noinspection ResultOfMethodCallIgnored
+                        f.delete();
                     }
                 }
             }
-            boolean success = file.delete();
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
         }
     }
 }

@@ -83,6 +83,32 @@ public class Detector {
                         Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
                     }
                 }
+            } catch (IllegalArgumentException e) {
+                try {
+                    List<String> benchmarkList = FileDetector.splitPathsToFiles(benchmark);
+                    List<String> currentList = FileDetector.splitPathsToFiles(current);
+                    System.out.println("Split json file");
+                    if (benchmarkList != null && !benchmarkList.isEmpty()
+                            && currentList != null && !currentList.isEmpty()) {
+                        benchmarkList.forEach(path -> {
+                            System.out.print(path.substring(BENCHMARK_FOLDER.length()) + " ");
+                            ChangedOpenApi diff = OpenApiCompare.fromLocations(path,
+                                    CURRENT_FOLDER + "\\" + path.substring(BENCHMARK_FOLDER.length() + 1));
+                            if (diff.isDiff()) {
+                                Report.render(diff, path.substring(BENCHMARK_FOLDER.length() + 1));
+                            }
+                            //noinspection ResultOfMethodCallIgnored
+                            new File(path).delete();
+                        });
+                        currentList.forEach(path -> {
+                            //noinspection ResultOfMethodCallIgnored
+                            new File(path).delete();
+                        });
+                    }
+                    System.out.println();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

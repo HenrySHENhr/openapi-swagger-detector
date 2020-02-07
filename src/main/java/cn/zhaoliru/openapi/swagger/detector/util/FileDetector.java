@@ -1,10 +1,11 @@
 package cn.zhaoliru.openapi.swagger.detector.util;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileDetector {
@@ -107,6 +108,39 @@ public class FileDetector {
     }
 
     /**
+     * Split paths in different files
+     * @param pathname JSON file path
+     * @return List of generated files
+     * @throws IOException IOException
+     * @throws ParseException ParseException
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static List<String> splitPathsToFiles(String pathname) throws IOException, ParseException {
+        List<String> result = new ArrayList<>();
+
+        FileReader reader = new FileReader(pathname);
+        JSONParser parser = new JSONParser();
+        JSONObject source = (JSONObject) parser.parse(reader);
+        JSONObject sourceWithoutPath = new JSONObject(source);
+        sourceWithoutPath.remove("paths");
+        Map<String, Map> paths = (Map) source.get("paths");
+        JSONObject destination;
+        HashMap pathNode;
+        for (Map.Entry path : paths.entrySet()) {
+            pathNode = new HashMap<String, Map>();
+            pathNode.put(path.getKey(), path.getValue());
+            destination = new JSONObject(sourceWithoutPath);
+            destination.put("paths", pathNode);
+            String destinationPathname = pathname.substring(0, pathname.lastIndexOf("."))
+                    + path.getKey().toString().replace("/", "-")
+                    + pathname.substring(pathname.lastIndexOf("."));
+            writeFile(destinationPathname, destination.toString());
+            result.add(destinationPathname);
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /**
      * Update <code>allOf</code> or <code>oneOf</code> to <code>anyOf</code> in OpenAPI json file
      * @param pathname json file path
      */
@@ -127,4 +161,15 @@ public class FileDetector {
         tempStream.writeTo(fw);
         fw.close();
     }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void writeFile(String pathname, String content) throws IOException {
+        File file = new File(pathname);
+        file.createNewFile();
+        FileWriter fw = new FileWriter(file);
+        fw.write(content);
+        fw.flush();
+        fw.close();
+    }
+
 }
