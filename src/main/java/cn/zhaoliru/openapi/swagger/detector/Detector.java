@@ -1,5 +1,6 @@
 package cn.zhaoliru.openapi.swagger.detector;
 
+
 import cn.zhaoliru.openapi.swagger.detector.util.FileDetector;
 import cn.zhaoliru.openapi.swagger.detector.util.Report;
 import com.deepoove.swagger.diff.SwaggerDiff;
@@ -13,6 +14,8 @@ import java.io.FileReader;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
+
 
 public class Detector {
 
@@ -20,7 +23,8 @@ public class Detector {
     private static final String CURRENT_FOLDER = ResourceBundle.getBundle("config").getString("CURRENT_FOLDER");
     private static final String REPORT_FOLDER = ResourceBundle.getBundle("config").getString("REPORT_FOLDER");
 
-    public Detector() {
+
+    private Detector() {
         // Delete out of date report
         Report.deleteFolder(new File(REPORT_FOLDER));
 
@@ -72,9 +76,38 @@ public class Detector {
                 if (obj.containsKey("openapi")) {
                     FileDetector.updateToAnyOf(benchmark);
                     FileDetector.updateToAnyOf(current);
-                    ChangedOpenApi diff = OpenApiCompare.fromLocations(benchmark, current);
-                    if (diff.isDiff()) {
-                        Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                    Map<String, String> benchmarkList = FileDetector.splitPathsToMap(benchmark);
+                    Map<String, String> currentList = FileDetector.splitPathsToMap(current);
+
+                    if (benchmarkList != null && !benchmarkList.isEmpty()
+                            && currentList != null && !currentList.isEmpty()) {
+                        if (!benchmarkList.keySet().equals(currentList.keySet())) {
+                            // Get JSON object without paths node
+                            JSONObject sourceWithoutPath = new JSONObject(obj);
+                            sourceWithoutPath.remove("paths");
+                            String sourceWithoutPathString = sourceWithoutPath.toString();
+                            // Add JSON string without paths node to missing keys
+                            Set<String> benchmarkDiffSet = benchmarkList.keySet();
+                            Set<String> currentDiffSet = currentList.keySet();
+                            benchmarkDiffSet.removeAll(currentList.keySet());
+                            currentDiffSet.removeAll(benchmarkList.keySet());
+                            if (!benchmarkDiffSet.isEmpty()) {
+                                for (String diffNode : benchmarkDiffSet) {
+                                    currentList.put(diffNode, sourceWithoutPathString);
+                                }
+                            }
+                            if (!currentDiffSet.isEmpty()) {
+                                for (String diffNode : currentDiffSet) {
+                                    benchmarkList.put(diffNode, sourceWithoutPathString);
+                                }
+                            }
+                        }
+                        benchmarkList.forEach((key, value) -> {
+                            ChangedOpenApi diff = OpenApiCompare.fromContents(value, currentList.get(key));
+                            if (diff.isDiff()) {
+                                Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                            }
+                        });
                     }
                 } else {
                     SwaggerDiff diff = SwaggerDiff.compareV2(benchmark, current);
@@ -82,35 +115,6 @@ public class Detector {
                             || diff.getChangedEndpoints().size() != 0) {
                         Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
                     }
-                }
-            } catch (IllegalArgumentException e) {
-                System.out.println(e.toString());
-                try {
-                    List<String> benchmarkList = FileDetector.splitPathsToFiles(benchmark);
-                    List<String> currentList = FileDetector.splitPathsToFiles(current);
-                    System.out.println("Split json file");
-                    if (benchmarkList != null && !benchmarkList.isEmpty()
-                            && currentList != null && !currentList.isEmpty()) {
-                        // TODO Calculate path difference set between two folders
-
-                        benchmarkList.forEach(path -> {
-                            ChangedOpenApi diff = OpenApiCompare.fromLocations(path,
-                                    CURRENT_FOLDER + "\\" + path.substring(BENCHMARK_FOLDER.length() + 1));
-                            if (diff.isDiff()) {
-                                Report.render(diff, path.substring(BENCHMARK_FOLDER.length() + 1));
-                            }
-                            //noinspection ResultOfMethodCallIgnored
-                            new File(path).delete();
-                        });
-                        currentList.forEach(path -> {
-                            //noinspection ResultOfMethodCallIgnored
-                            new File(path).delete();
-                        });
-                    } else {
-                        throw e;
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
                 }
             } catch (Exception e) {
                 e.printStackTrace();

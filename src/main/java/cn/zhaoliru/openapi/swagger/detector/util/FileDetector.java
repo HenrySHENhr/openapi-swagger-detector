@@ -142,6 +142,37 @@ public class FileDetector {
     }
 
     /**
+     * Split paths in a map
+     * @param pathname JSON file path
+     * @return List of generated JSON string
+     * @throws IOException IOException
+     * @throws ParseException ParseException
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static Map<String, String> splitPathsToMap(String pathname) throws IOException, ParseException {
+        Map<String, String> result = new HashMap<>();
+
+        FileReader reader = new FileReader(pathname);
+        JSONParser parser = new JSONParser();
+        JSONObject source = (JSONObject) parser.parse(reader);
+        JSONObject sourceWithoutPath = new JSONObject(source);
+        sourceWithoutPath.remove("paths");
+        Map<String, Map> paths = (Map) source.get("paths");
+        JSONObject destination;
+        HashMap pathNode;
+        for (Map.Entry path : paths.entrySet()) {
+            pathNode = new HashMap<String, Map>();
+            pathNode.put(path.getKey(), path.getValue());
+            destination = new JSONObject(sourceWithoutPath);
+            destination.put("paths", pathNode);
+            String destinationPathname = path.getKey().toString();
+            System.out.println(destinationPathname);
+            result.put(destinationPathname, destination.toString());
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /**
      * Update <code>allOf</code> or <code>oneOf</code> to <code>anyOf</code> in OpenAPI json file
      * @param pathname json file path
      */

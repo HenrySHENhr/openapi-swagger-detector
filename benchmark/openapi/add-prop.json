@@ -111,6 +111,9 @@
           "details": {
             "type": "count"
           },
+          "test": {
+            "type": "count"
+          },
           "extra_info": {
             "type": "array",
             "items": {
