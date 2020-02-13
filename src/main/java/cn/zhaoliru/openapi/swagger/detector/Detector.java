@@ -11,10 +11,7 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 
 public class Detector {
@@ -87,8 +84,8 @@ public class Detector {
                             sourceWithoutPath.remove("paths");
                             String sourceWithoutPathString = sourceWithoutPath.toString();
                             // Add JSON string without paths node to missing keys
-                            Set<String> benchmarkDiffSet = benchmarkList.keySet();
-                            Set<String> currentDiffSet = currentList.keySet();
+                            Set<String> benchmarkDiffSet = new HashSet<>(benchmarkList.keySet());
+                            Set<String> currentDiffSet = new HashSet<>(currentList.keySet());
                             benchmarkDiffSet.removeAll(currentList.keySet());
                             currentDiffSet.removeAll(benchmarkList.keySet());
                             if (!benchmarkDiffSet.isEmpty()) {
@@ -105,7 +102,9 @@ public class Detector {
                         benchmarkList.forEach((key, value) -> {
                             ChangedOpenApi diff = OpenApiCompare.fromContents(value, currentList.get(key));
                             if (diff.isDiff()) {
-                                Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1));
+                                Report.render(diff, benchmark.substring(BENCHMARK_FOLDER.length() + 1,
+                                        benchmark.lastIndexOf(".json"))
+                                        + key.replace("/", "-") + ".json");
                             }
                         });
                     }
